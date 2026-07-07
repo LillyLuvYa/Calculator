@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grade Checker 2.10</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .card { background: #fff; border-radius: 12px; padding: 2rem; width: 100%; max-width: 460px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    h1 { font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+    .field input { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: border 0.2s; }
+    .field input:focus { border-color: #555; }
+    .btn { width: 100%; padding: 11px; font-size: 15px; font-weight: 600; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; margin-top: 0.5rem; }
+    .btn:hover { background: #333; }
+    .error-msg { font-size: 13px; color: #c0392b; margin-top: 8px; display: none; }
+    .result { margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem; display: none; }
+    .result-name { font-size: 13px; color: #888; margin-bottom: 2px; }
+    .result-avg { font-size: 30px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; }
+    .grade-badge { display: inline-block; font-size: 13px; font-weight: 600; padding: 4px 14px; border-radius: 8px; margin-bottom: 10px; }
+    .grade-a { background: #e6f9f0; color: #1a7a4a; }
+    .grade-b { background: #e6f0fb; color: #1a4a9a; }
+    .grade-c { background: #fff8e1; color: #a07800; }
+    .grade-f { background: #fdecea; color: #a32d2d; }
+    .message { font-size: 14px; color: #555; }
+    .reset-btn { font-size: 13px; color: #888; background: none; border: none; cursor: pointer; margin-top: 1rem; padding: 0; display: none; }
+    .reset-btn:hover { color: #1a1a1a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Grade Checker 2.10</h1>
+    <p class="subtitle">Enter grades to calculate a student's average and letter grade.</p>
+
+    <div class="field">
+      <label>Student name</label>
+      <input type="text" id="name" placeholder="e.g. Jordan Smith" />
+    </div>
+    <div class="field">
+      <label>Assignment grade (0–100)</label>
+      <input type="number" id="assignment" placeholder="e.g. 88" min="0" max="100" />
+    </div>
+    <div class="field">
+      <label>Quiz grade (0–100)</label>
+      <input type="number" id="quiz" placeholder="e.g. 75" min="0" max="100" />
+    </div>
+    <div class="field">
+      <label>Test grade (0–100)</label>
+      <input type="number" id="test" placeholder="e.g. 92" min="0" max="100" />
+    </div>
+
+    <p class="error-msg" id="error"></p>
+    <button class="btn" onclick="calculate()">Check grade</button>
+
+    <div class="result" id="result">
+      <p class="result-name" id="res-name"></p>
+      <p class="result-avg" id="res-avg"></p>
+      <div class="grade-badge" id="res-badge"></div>
+      <p class="message" id="res-msg"></p>
+    </div>
+
+    <button class="reset-btn" id="reset-btn" onclick="reset()">← Check another student</button>
+  </div>
+
+  <script>
+    function calculate() {
+      const nameVal = document.getElementById('name').value.trim();
+      const a = parseFloat(document.getElementById('assignment').value);
+      const q = parseFloat(document.getElementById('quiz').value);
+      const t = parseFloat(document.getElementById('test').value);
+      const err = document.getElementById('error');
+
+      err.style.display = 'none';
+
+      if (!nameVal) { err.textContent = "Please enter the student's name."; err.style.display = 'block'; return; }
+      if (isNaN(a) || isNaN(q) || isNaN(t)) { err.textContent = "Please enter all three grades."; err.style.display = 'block'; return; }
+
+      const average = (a + q + t) / 3;
+
+      if (average < 0 || average > 100) {
+        err.textContent = "Error: Average grade must be between 0 and 100.";
+        err.style.display = 'block';
+        return;
+      }
+
+      let letter, message, badgeClass;
+      if (average >= 90) {
+        letter = 'A'; message = 'Excellent work!'; badgeClass = 'grade-a';
+      } else if (average >= 80) {
+        letter = 'B'; message = 'Good job!'; badgeClass = 'grade-b';
+      } else if (average >= 70) {
+        letter = 'C'; message = 'You passed!'; badgeClass = 'grade-c';
+      } else {
+        letter = 'F'; message = 'damn are you serious? You failed!'; badgeClass = 'grade-f';
+      }
+
+      document.getElementById('res-name').textContent = nameVal;
+      document.getElementById('res-avg').textContent = 'Average: ' + average.toFixed(1);
+      const badge = document.getElementById('res-badge');
+      badge.textContent = 'Letter grade: ' + letter;
+      badge.className = 'grade-badge ' + badgeClass;
+      document.getElementById('res-msg').textContent = message;
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('reset-btn').style.display = 'block';
+    }
+
+    function reset() {
+      ['name','assignment','quiz','test'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('reset-btn').style.display = 'none';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('name').focus();
+    }
+  </script>
+</body>
+</html>
